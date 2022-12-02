@@ -301,15 +301,6 @@ app.post("/register", (req, res) => {
   res.redirect("/urls");
 });
 
-app.get("/cookie", (req, res) => {
-  req.session.userId = "this is a cookie";
-  res.send("cookie set");
-});
-
-app.get("/admin/urls", (req, res) => {
-  res.json(urls);
-});
-
 app.get("*", (req, res) => {
   res.render("page_not_found");
 });
