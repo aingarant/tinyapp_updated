@@ -251,7 +251,15 @@ app.post("/login", (req, res) => {
     return res.status(400).render("user_login", templateVars);
   }
   const user = userLogin(emailInput, passwordInput, users);
-  if (!user) return res.send("Login Error.");
+  if (!user) {
+    const templateVars = {
+      userId: "",
+      message: "Login error.",
+    };
+
+    return res.render("user_login", templateVars);
+  }
+
   req.session.userId = user.userId;
   res.redirect("/urls");
 });
@@ -278,9 +286,16 @@ app.post("/register", (req, res) => {
 
     return res.render("user_register", templateVars);
   }
-
   const newUser = userRegister(emailInput, passwordInput, users);
-  if (!newUser) return res.send("Somethign went wrong during registration");
+  if (!newUser) {
+    const templateVars = {
+      userId: "",
+      message:
+        "Something went wrong during registration. Please contact admin..",
+    };
+
+    return res.render("user_register", templateVars);
+  }
 
   req.session.userId = newUser.userId;
   res.redirect("/urls");
