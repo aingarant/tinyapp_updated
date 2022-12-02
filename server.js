@@ -2,7 +2,7 @@ const express = require("express");
 const morgan = require("morgan");
 const cookieSession = require("cookie-session");
 const app = express();
-const port = 80;
+const port = 8080;
 
 const {
   getUserByEmail,
