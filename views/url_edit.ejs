@@ -23,14 +23,17 @@
   <body>
     <header><%- include('partials/_header'); %></header>
 
-    <main class="container">
-      <h5 class="card-title">TinyURL for: <%- longUrl %></h5>
-      <p class="card-text">
-        Short URL ID: <a href="/u/<%= id %>"><%= id %></a>
-      </p>
+    <main class="container py-5">
+      <div>
+        <h3 class="text-center">Edit URL</h3>
+        <div class="p-4 bg-info w-50 mx-auto text-dark text-center">
+     
+      <h3 class="my-5">Long URL: <%- longUrl %></h3>
+      <h3 class="my-5">
+        Short URL: <a href="/u/<%= id %>"><%= id %></a>
+      </h3>
 
-      <h5 class="card-title">EDIT</h5>
-
+ 
       <form action="/urls/<%- id %>/edit" method="post">
         <input
           type="text"
@@ -39,7 +42,7 @@
           class="p-2 rounded-md"
         />
         <input type="hidden" name="id" value="<%= id %>" />
-        <button class="btn btn-primary">Submit</button>
+        <button class="btn btn-danger">Submit</button>
       </form>
     </main>
 
