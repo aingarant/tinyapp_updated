@@ -29,6 +29,7 @@ app.use(
   })
 );
 
+// import db and user objects (aka database) from external files.
 const users = require("./db/users");
 const urls = require("./db/urls");
 
@@ -301,7 +302,25 @@ app.post("/register", (req, res) => {
 });
 
 app.get("*", (req, res) => {
-  res.render("page_not_found");
+
+  let userId = "";
+  let email = "";
+
+  if (req.session.userId) {
+    userId  = req.session.userId;
+  }
+
+  const getUser = getUserByUserId(userId, users);
+  if (getUser) {
+    email = getUser.email;
+  }
+
+
+  const templateVars = {
+    userId: userId,
+    email: email,
+  };
+  res.render("page_not_found", templateVars);
 });
 
 app.listen(port, () => {
