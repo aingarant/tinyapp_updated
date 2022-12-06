@@ -176,7 +176,12 @@ app.get("/urls/:id/edit", (req, res) => {
   const email = user.email;
 
   if (urls[id].userId !== userId) {
-    return res.send("nacho url!");
+    const templateVars = {
+      userId: null,
+      messageTitle: `Forbidden`,
+      messageBody: `The short URL you are trying to access <b>${id}</b> does not belong to you.`,
+    };
+    return res.status(403).render("error_page", templateVars);
   }
 
   const longUrl = urls[id].longUrl;
