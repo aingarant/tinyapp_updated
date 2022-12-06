@@ -1,8 +1,10 @@
 const users = require("../db/users");
 const bcrypt = require("bcryptjs");
 
+// Generate "user ID" (generate a 6 character random string)
 const createUserId = () => Math.random().toString(36).substring(2, 8);
 
+// Get user object from users DB for passed in userId
 const getUserByUserId = (userId, users) => {
   // console.log(users, userId)
   let foundUser = null;
@@ -14,6 +16,7 @@ const getUserByUserId = (userId, users) => {
   return foundUser;
 };
 
+// Get user object from users DB for passed in email
 const getUserByEmail = (email, users) => {
   let foundUser = undefined;
   for (const userId in users) {
@@ -22,13 +25,13 @@ const getUserByEmail = (email, users) => {
   return foundUser;
 };
 
+// User Login helper function
 const userLogin = (email, password, users) => {
   let returnedUser = null;
   let user = null;
   
   const foundUser = getUserByEmail(email, users);
 
-  console.log(foundUser)
   if (!foundUser) {
     return null;
   }
@@ -45,6 +48,7 @@ const userLogin = (email, password, users) => {
   return returnedUser;
 };
 
+// User Register helper function
 const userRegister = (email, password, users) => {
   const userId = createUserId();
 

@@ -128,7 +128,6 @@ app.get("/url/:id/edit", (req, res) => {
   const id = req.params.id;
 
   const userId = req.session.userId;
-  // let email = "";
   let message = "";
 
   if (!userId) {
