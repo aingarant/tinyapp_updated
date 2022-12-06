@@ -316,7 +316,7 @@ app.post("/login", (req, res) => {
   if (!user) {
     const templateVars = {
       user: "",
-      userId: "",
+      userId,
       message: "Login error.",
     };
 
