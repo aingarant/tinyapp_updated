@@ -33,6 +33,7 @@ app.use(
 const users = require("./db/users");
 const urls = require("./db/urls");
 
+// get routes
 app.get("/", (req, res) => {
   const userId = req.session.userId;
 
@@ -46,16 +47,18 @@ app.get("/urls", (req, res) => {
   let userId = "";
   let email = "";
 
+  // verify there's a useId specified in cookie session, assign to variable userId
   if (req.session.userId) {
     userId = req.session.userId;
   }
 
-  const getUser = getUserByUserId(userId, users);
-  if (getUser) {
-    email = getUser.email;
+  // verify userId belongs to active user in "database"
+  const user = getUserByUserId(userId, users);
+  if (user) {
+    email = user.email;
   }
 
-  if (!getUser) {
+  if (!user) {
     req.session = null;
     const templateVars = {
       userId: userId,
@@ -69,10 +72,9 @@ app.get("/urls", (req, res) => {
     return res.render("error_page", templateVars);
   }
 
-  const user = getUser;
-
   email = user.email;
   const myUrls = urlsForUser(userId);
+
   const templateVars = {
     userId: userId,
     email: email,
@@ -89,12 +91,7 @@ app.get("/urls/new", (req, res) => {
     return res.redirect("/login");
   }
 
-  // verify if session belongs to active user in database.
   const user = getUserByUserId(userId, users);
-
-  // if stuck cookie session (belonging to non-active user)
-  // 1. delete session.
-  // 2. reirect to /login page
 
   if (!user) {
     req.session = null;
@@ -277,7 +274,7 @@ app.post("/urls/new", (req, res) => {
     shortUrl,
     userId,
   };
-  res.redirect(`/urls/${shortUrl}`);
+  res.redirect(`/urls`);
 });
 
 app.post("/urls/:id/delete", (req, res) => {
