@@ -29,7 +29,7 @@ const getUserByEmail = (email, users) => {
 const userLogin = (email, password, users) => {
   let returnedUser = null;
   let user = null;
-  
+
   const foundUser = getUserByEmail(email, users);
 
   if (!foundUser) {
@@ -39,6 +39,10 @@ const userLogin = (email, password, users) => {
   bcrypt.compareSync(password, foundUser.password)
     ? (user = foundUser)
     : (user = null);
+
+  if (!user) {
+    return null;
+  }
 
   returnedUser = {
     userId: user.userId,

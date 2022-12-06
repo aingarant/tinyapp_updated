@@ -2,7 +2,7 @@ const express = require("express");
 const morgan = require("morgan");
 const cookieSession = require("cookie-session");
 const app = express();
-const port = 8080;
+const port = 8181;
 
 const {
   getUserByEmail,
@@ -32,7 +32,6 @@ app.use(
 // import db and user objects (aka database) from external files.
 const users = require("./db/users");
 const urls = require("./db/urls");
-const { render } = require("ejs");
 
 app.get("/", (req, res) => {
   const userId = req.session.userId;
@@ -56,20 +55,20 @@ app.get("/urls", (req, res) => {
     email = getUser.email;
   }
 
-  if (!getUser)
-  {
+  if (!getUser) {
     let templateVars = {
       userId: userId,
       email: email,
       messageBody: `<p>You are trying to access a page that requires you to be logged in.</p>
       <p>Please <a href="/login">Login here</a> with your account.</p>
-      <p>If you do not have an account, please <a href="/register">regsiter here
+      <p>If you do not have an account, please <a href="/register">Register here
       </a>.</p>`,
       messageTitle: "Not Logged In",
     };
     return res.render("error_page", templateVars);
   }
 
+  const user = getUser;
 
   email = user.email;
   myUrls = urlsForUser(userId);
@@ -81,7 +80,7 @@ app.get("/urls", (req, res) => {
   res.render("url_index", templateVars);
 });
 
-app.get("/url/new", (req, res) => {
+app.get("/urls/new", (req, res) => {
   const userId = req.session.userId;
 
   if (!userId) {
@@ -105,17 +104,27 @@ app.get("/url/new", (req, res) => {
   res.render("url_new", templateVars);
 });
 
-app.get("/url/:id", (req, res) => {
+app.get("/urls/:id", (req, res) => {
+  const userId = req.session.userId;
+
   const id = req.params.id;
 
   if (!urls[id]) {
-    return res.redirect("/urls");
+    const templateVars = {
+      userId: null,
+      messageTitle: `Not a valid short URL`,
+      messageBody: `The short URL you have provided <b>${id}</b> is not valid.`,
+    };
+    return res.render("error_page", templateVars);
   }
 
-  const userId = req.session.userId;
-
   if (!userId) {
-    return res.redirect("/login");
+    const templateVars = {
+      userId: null,
+      messageTitle: "Not Logged in",
+      messageBody: "You have to be logged in to view this page.",
+    };
+    return res.render("error_page", templateVars);
   }
 
   const user = getUserByUserId(userId, users);
@@ -127,7 +136,13 @@ app.get("/url/:id", (req, res) => {
   const email = user.email;
 
   if (urls[id].userId !== userId) {
-    return res.redirect("/urls");
+    const templateVars = {
+      userId: null,
+      messageTitle: "Forbidden",
+      messageBody:
+        "You do not have access to this page. This URL does not belong to you.",
+    };
+    return res.render("error_page", templateVars);
   }
 
   const longUrl = urls[id].longUrl;
@@ -142,7 +157,7 @@ app.get("/url/:id", (req, res) => {
   res.render("url_show", templateVars);
 });
 
-app.get("/url/:id/edit", (req, res) => {
+app.get("/urls/:id/edit", (req, res) => {
   const id = req.params.id;
 
   const userId = req.session.userId;
@@ -181,22 +196,30 @@ app.get("/u/:id", (req, res) => {
   const id = req.params.id;
   const url = getUrlById(id, urls);
   if (!url) {
-    return res.redirect("/");
+    const templateVars = {
+      userId: null,
+      messageTitle: "Short URL Not Found",
+      messageBody: `The Short URL provided (${id})was not found`,
+    };
+    return res.render("error_page", templateVars);
   }
   res.redirect(url.longUrl);
 });
 
 app.get("/login", (req, res) => {
-  const userId = req.session.userId;
+  let userId = null;
+  if (req.session.userId) {
+    userId = req.session.userId;
+  }
 
   if (userId) {
     return res.redirect("/urls");
   }
 
   const templateVars = {
-    message: null,
-    userId: null,
-    email: null,
+    message: "",
+    userId: "",
+    email: "",
   };
 
   res.render("user_login", templateVars);
@@ -213,18 +236,23 @@ app.get("/register", (req, res) => {
   if (userId) return res.redirect("/");
 
   const templateVars = {
-    message: null,
-    userId: null,
-    email: null,
+    message: "",
+    userId: "",
+    email: "",
   };
   res.render("user_register", templateVars);
 });
 
-app.post("/url/new", (req, res) => {
+app.post("/urls/new", (req, res) => {
   const userId = req.session.userId;
 
   if (!userId) {
-    return res.send(`Sorry, you need to be logged in.`);
+    const templateVars = {
+      userId: null,
+      messageTitle: "Unauthorized",
+      messageBody: "You have to be logged into submit a new URL.",
+    };
+    return res.status(401).render("error_page", templateVars);
   }
 
   const longUrl = req.body.longUrl;
@@ -234,35 +262,52 @@ app.post("/url/new", (req, res) => {
     shortUrl,
     userId,
   };
-  res.redirect(`/url/${shortUrl}`);
+  res.redirect(`/urls/${shortUrl}`);
 });
 
-app.post("/url/:id/delete", (req, res) => {
+app.post("/urls/:id/delete", (req, res) => {
   const id = req.body.id;
   const userId = req.session.userId;
 
-  if (isMyUrl(userId, id, urls)) {
-    delete urls[id];
-  } else {
-    res.redirect("/urls");
+  if (!isMyUrl(userId, id, urls)) {
+    const templateVars = {
+      userId: null,
+      messageTitle: "Unauthorized",
+      messageBody:
+        "You are trying to delete a URL that does not belong to you..",
+    };
+    return res.status(401).render("error_page", templateVars);
   }
+  delete urls[id];
 
   res.redirect("/urls");
 });
 
-app.post("/url/:id/edit", (req, res) => {
+app.post("/urls/:id/edit", (req, res) => {
   const userId = req.session.userId;
   const { id, newUrl } = req.body;
+
+  if (!isMyUrl(userId, id, urls)) {
+    const templateVars = {
+      userId: null,
+      messageTitle: "Unauthorized",
+      messageBody:
+        "You are trying to Edit a URL that does not belong to you.",
+    };
+    return res.status(401).render("error_page", templateVars);
+  }
   urls[id] = { shortUrl: id, longUrl: newUrl, userId: userId };
-  res.redirect(`/url/${id}`);
+  res.redirect(`/urls`);
 });
 
 app.post("/login", (req, res) => {
+  let userId = "";
   const emailInput = req.body.email;
   const passwordInput = req.body.password;
 
   if (!emailInput || !passwordInput) {
     const templateVars = {
+      userId: "",
       message: "Email & Password fields must not be empty.",
     };
     return res.status(400).render("user_login", templateVars);
@@ -270,6 +315,7 @@ app.post("/login", (req, res) => {
   const user = userLogin(emailInput, passwordInput, users);
   if (!user) {
     const templateVars = {
+      user: "",
       userId: "",
       message: "Login error.",
     };

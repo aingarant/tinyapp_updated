@@ -37,14 +37,14 @@
           <% for (let id in urls) { %>
           <tr>
             <td>
-              <a href="/url/<%= urls[id].shortUrl %>"
+              <a href="/urls/<%= urls[id].shortUrl %>"
                 ><%= urls[id].shortUrl %></a
               >
             </td>
             <td><%= urls[id].longUrl %></td>
 
             <td>
-              <form action="/url/<%= urls[id].shortUrl %>/edit" method="get">
+              <form action="/urls/<%= urls[id].shortUrl %>/edit" method="get">
                 <input type="hidden" name="id" value="<%= id %>" />
                 <button class="btn text-primary border border-primary">
                   Edit
@@ -53,7 +53,7 @@
             </td>
 
             <td>
-              <form action="/url/<%= urls[id].shortUrl %>/delete" method="post">
+              <form action="/urls/<%= urls[id].shortUrl %>/delete" method="post">
                 <input
                   type="hidden"
                   name="id"
