@@ -74,9 +74,11 @@ const userRegister = (email, password, users) => {
   return returnedUser;
 };
 
+// Verify if session coookie in client belongs to valid user in "database"
+
 module.exports = {
   getUserByEmail,
   getUserByUserId,
   userLogin,
-  userRegister,
+  userRegister
 };

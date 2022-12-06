@@ -56,7 +56,8 @@ app.get("/urls", (req, res) => {
   }
 
   if (!getUser) {
-    let templateVars = {
+    req.session = null;
+    const templateVars = {
       userId: userId,
       email: email,
       messageBody: `<p>You are trying to access a page that requires you to be logged in.</p>
@@ -71,8 +72,8 @@ app.get("/urls", (req, res) => {
   const user = getUser;
 
   email = user.email;
-  myUrls = urlsForUser(userId);
-  templateVars = {
+  const myUrls = urlsForUser(userId);
+  const templateVars = {
     userId: userId,
     email: email,
     urls: myUrls,
@@ -83,13 +84,20 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   const userId = req.session.userId;
 
+  // verify there's a valid user session.
   if (!userId) {
     return res.redirect("/login");
   }
 
+  // verify if session belongs to active user in database.
   const user = getUserByUserId(userId, users);
 
+  // if stuck cookie session (belonging to non-active user)
+  // 1. delete session.
+  // 2. reirect to /login page
+
   if (!user) {
+    req.session = null;
     return res.redirect("/login");
   }
 
@@ -130,6 +138,7 @@ app.get("/urls/:id", (req, res) => {
   const user = getUserByUserId(userId, users);
 
   if (!user) {
+    req.session = null;
     return res.redirect("/login");
   }
 
@@ -170,6 +179,7 @@ app.get("/urls/:id/edit", (req, res) => {
   const user = getUserByUserId(userId, users);
 
   if (!user) {
+    req.session = null;
     return res.redirect("/login");
   }
 
@@ -296,8 +306,7 @@ app.post("/urls/:id/edit", (req, res) => {
     const templateVars = {
       userId: null,
       messageTitle: "Unauthorized",
-      messageBody:
-        "You are trying to Edit a URL that does not belong to you.",
+      messageBody: "You are trying to Edit a URL that does not belong to you.",
     };
     return res.status(401).render("error_page", templateVars);
   }
@@ -319,6 +328,7 @@ app.post("/login", (req, res) => {
   }
   const user = userLogin(emailInput, passwordInput, users);
   if (!user) {
+    req.session = null;
     const templateVars = {
       user: "",
       userId,
@@ -356,6 +366,7 @@ app.post("/register", (req, res) => {
   }
   const newUser = userRegister(emailInput, passwordInput, users);
   if (!newUser) {
+    req.session = null;
     const templateVars = {
       userId: "",
       message:
