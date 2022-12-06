@@ -32,6 +32,7 @@ app.use(
 // import db and user objects (aka database) from external files.
 const users = require("./db/users");
 const urls = require("./db/urls");
+const { render } = require("ejs");
 
 app.get("/", (req, res) => {
   const userId = req.session.userId;
@@ -43,20 +44,36 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const userId = req.session.userId;
+  let userId = "";
+  let email = "";
 
-  if (!userId) {
-    return res.redirect("/login");
+  if (req.session.userId) {
+    userId = req.session.userId;
   }
 
-  const user = getUserByUserId(userId, users);
-  if (!user) {
-    return res.redirect("/login");
+  const getUser = getUserByUserId(userId, users);
+  if (getUser) {
+    email = getUser.email;
   }
 
-  const email = user.email;
-  const myUrls = urlsForUser(userId);
-  const templateVars = {
+  if (!getUser)
+  {
+    let templateVars = {
+      userId: userId,
+      email: email,
+      messageBody: `<p>You are trying to access a page that requires you to be logged in.</p>
+      <p>Please <a href="/login">Login here</a> with your account.</p>
+      <p>If you do not have an account, please <a href="/register">regsiter here
+      </a>.</p>`,
+      messageTitle: "Not Logged In",
+    };
+    return res.render("error_page", templateVars);
+  }
+
+
+  email = user.email;
+  myUrls = urlsForUser(userId);
+  templateVars = {
     userId: userId,
     email: email,
     urls: myUrls,
@@ -302,12 +319,11 @@ app.post("/register", (req, res) => {
 });
 
 app.get("*", (req, res) => {
-
   let userId = "";
   let email = "";
 
   if (req.session.userId) {
-    userId  = req.session.userId;
+    userId = req.session.userId;
   }
 
   const getUser = getUserByUserId(userId, users);
@@ -315,12 +331,14 @@ app.get("*", (req, res) => {
     email = getUser.email;
   }
 
-
   const templateVars = {
     userId: userId,
     email: email,
+    messageBody: `<p>The page you are looking for was not found.</p>
+    <p>Please check the spelling and try again.</p>`,
+    messageTitle: "404 | Page Not Found",
   };
-  res.render("page_not_found", templateVars);
+  return res.render("error_page", templateVars);
 });
 
 app.listen(port, () => {

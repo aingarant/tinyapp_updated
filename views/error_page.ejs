@@ -4,7 +4,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <head>
-    <title>404 - PAGE NOT FOUND - TinyApp</title>
+    <title><%- messageTitle %> - Aingaran's TinyApp</title>
 
     <!-- CSS (load bootstrap from a CDN) -->
     <link
@@ -23,8 +23,11 @@
   <body>
     <header><%- include('partials/_header'); %></header>
 
-    <main class="container mx-auto my-4 bg-warning">
-      <H1>404 - PAGE NOT FOUND</H1>
+    <main class="container mx-auto">
+      <H1 class=" my-4 bg-warning p-2"><%- messageTitle %></H1>
+      <div class="p-2 my-4">
+        <%- messageBody %>
+      </div>
     </main>
 
     <script
